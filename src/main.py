@@ -6,6 +6,9 @@ from email_actions import EmailActions
 logging.basicConfig(level=logging.INFO)
 
 def main():
+    """
+    Main function to fetch emails, analyze them using ChatGPT, and perform actions based on the analysis.
+    """
     logging.info("Starting the Gmail fetcher")
     gmail_fetcher = GmailFetcher()
     chatgpt_processor = ChatGPTProcessor()
