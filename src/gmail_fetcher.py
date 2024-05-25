@@ -5,12 +5,23 @@ from config import Config
 
 class GmailFetcher:
     def __init__(self, username=Config.EMAIL_USERNAME, password=Config.EMAIL_PASSWORD, imap_server=Config.IMAP_SERVER):
+        """
+        Initializes the GmailFetcher with the given credentials and IMAP server.
+
+        Args:
+            username (str): Email username.
+            password (str): Email password.
+            imap_server (str): IMAP server address.
+        """
         self.username = username
         self.password = password
         self.imap_server = imap_server
         self.connection = None
 
     def connect(self):
+        """
+        Connects to the Gmail IMAP server using the provided credentials.
+        """
         logging.info("Attempting to connect to Gmail")
         try:
             self.connection = imaplib.IMAP4_SSL(self.imap_server)
@@ -21,6 +32,17 @@ class GmailFetcher:
             raise
 
     def fetch_emails(self, folder="inbox", search_criteria="ALL", limit=100):
+        """
+        Fetches email IDs from the specified folder based on the search criteria and limit.
+
+        Args:
+            folder (str): The folder to search emails in.
+            search_criteria (str): The search criteria to use.
+            limit (int): The maximum number of emails to fetch.
+
+        Returns:
+            list: A list of email IDs.
+        """
         logging.info(f"Fetching up to {limit} emails from folder: {folder} with criteria: {search_criteria}")
         if self.connection is None:
             logging.error("No connection established. Call connect() first.")
@@ -41,6 +63,15 @@ class GmailFetcher:
             return []
 
     def fetch_email_content(self, email_id):
+        """
+        Fetches the content of an email by its ID.
+
+        Args:
+            email_id (bytes): The ID of the email to fetch.
+
+        Returns:
+            email.message.Message: The email message object.
+        """
         logging.info(f"Fetching content for email ID: {email_id}")
         if self.connection is None:
             logging.error("No connection established. Call connect() first.")
@@ -60,6 +91,15 @@ class GmailFetcher:
             return None
 
     def extract_relevant_content(self, email_msg):
+        """
+        Extracts the relevant content from an email message, including the subject, sender, first paragraph, and footer.
+
+        Args:
+            email_msg (email.message.Message): The email message object.
+
+        Returns:
+            str: The extracted relevant content.
+        """
         subject = email_msg["subject"]
         from_email = email.utils.parseaddr(email_msg["From"])[1]
         body = ""
@@ -79,6 +119,16 @@ class GmailFetcher:
         return relevant_content
 
     def extract_footer(self, body, num_lines=5):
+        """
+        Extracts the footer from the email body, looking for typical patterns like "unsubscribe" and capturing the last several lines.
+
+        Args:
+            body (str): The body of the email.
+            num_lines (int): The number of lines to capture from the footer.
+
+        Returns:
+            str: The extracted footer content.
+        """
         lines = body.split('\n')
         footer = []
         for line in reversed(lines):
@@ -92,6 +142,9 @@ class GmailFetcher:
         return '\n'.join(footer)
 
     def logout(self):
+        """
+        Logs out from the Gmail IMAP server.
+        """
         logging.info("Logging out from Gmail")
         if self.connection:
             self.connection.logout()
