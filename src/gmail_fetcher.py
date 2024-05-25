@@ -131,13 +131,14 @@ class GmailFetcher:
         """
         lines = body.split('\n')
         footer = []
+        capture = False
         for line in reversed(lines):
             if "unsubscribe" in line.lower() or "opt-out" in line.lower():
+                capture = True
+            if capture:
                 footer.append(line)
-            elif len(footer) > 0 and len(footer) < num_lines:
-                footer.append(line)
-            elif len(footer) >= num_lines:
-                break
+                if len(footer) >= num_lines:
+                    break
         footer.reverse()
         return '\n'.join(footer)
 
