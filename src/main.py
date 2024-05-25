@@ -22,11 +22,8 @@ def main():
             for email_id in email_ids:  # Process limited number of emails
                 email_content = gmail_fetcher.fetch_email_content(email_id)
                 if email_content:
-                    subject = email_content["subject"]
-                    payload = email_content.get_payload(decode=True)
-                    body = payload.decode() if payload else ""
-                    
-                    analysis = chatgpt_processor.analyze_email(subject, body)
+                    relevant_content = gmail_fetcher.extract_relevant_content(email_content)
+                    analysis = chatgpt_processor.analyze_email(relevant_content)
                     if analysis:
                         logging.info(f"Analysis for email ID {email_id}: {analysis}")
                         action = analysis.lower().strip()

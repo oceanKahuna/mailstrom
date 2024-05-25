@@ -59,6 +59,38 @@ class GmailFetcher:
             logging.error(f"Failed to fetch email content: {e}")
             return None
 
+    def extract_relevant_content(self, email_msg):
+        subject = email_msg["subject"]
+        from_email = email.utils.parseaddr(email_msg["From"])[1]
+        body = ""
+
+        if email_msg.is_multipart():
+            for part in email_msg.walk():
+                if part.get_content_type() == "text/plain":
+                    body = part.get_payload(decode=True).decode()
+                    break
+        else:
+            body = email_msg.get_payload(decode=True).decode()
+
+        first_paragraph = body.split('\n\n')[0]
+        footer = self.extract_footer(body)
+
+        relevant_content = f"From: {from_email}\nSubject: {subject}\n\n{first_paragraph}\n\n{footer}"
+        return relevant_content
+
+    def extract_footer(self, body, num_lines=5):
+        lines = body.split('\n')
+        footer = []
+        for line in reversed(lines):
+            if "unsubscribe" in line.lower() or "opt-out" in line.lower():
+                footer.append(line)
+            elif len(footer) > 0 and len(footer) < num_lines:
+                footer.append(line)
+            elif len(footer) >= num_lines:
+                break
+        footer.reverse()
+        return '\n'.join(footer)
+
     def logout(self):
         logging.info("Logging out from Gmail")
         if self.connection:
